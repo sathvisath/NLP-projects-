@@ -1,0 +1,50 @@
+def load_words():
+    """
+    Load a dictionary of common words.
+    Here we simulate a dictionary for demonstration purposes.
+    """
+    common_words = {
+        "we", "are", "the", "people", "mention", "your", "faves", "now", "playing",
+        "walking", "dead", "follow", "me"
+    }
+    return common_words
+
+def segment_hashtag(hashtag, words):
+    """
+    Segments a single hashtag into its constituent words using dynamic programming approach.
+    
+    Args:
+        hashtag (str): The input hashtag (without '#').
+        words (set): A set of valid dictionary words.
+    
+    Returns:
+        str: The segmented hashtag as a space-separated string.
+    """
+    n = len(hashtag)
+    dp = [None] * (n + 1)  # dp[i] stores the segmented words for the first i characters
+    dp[0] = ""  # Base case: empty string
+
+    for i in range(1, n + 1):
+        for j in range(i - 1, -1, -1):
+            word = hashtag[j:i]
+            if word in words:
+                if dp[j] is not None:
+                    dp[i] = (dp[j] + " " + word).strip()
+                    break
+
+    return dp[-1] if dp[-1] else hashtag  # Return the segmented result or the original hashtag if no split is found
+
+def main():
+    # Step 1: Load the dictionary
+    words = load_words()
+
+    # Step 2: Read input
+    n = int(input().strip())  # Number of hashtags
+    hashtags = [input().strip().lower() for _ in range(n)]
+
+    # Step 3: Process each hashtag
+    for hashtag in hashtags:
+        print(segment_hashtag(hashtag, words))
+
+if __name__ == "__main__":
+    main()
