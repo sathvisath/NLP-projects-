@@ -1,0 +1,79 @@
+# Enter your code here. Read input from STDIN. Print output to STDOUT
+import re
+import zlib
+import pickle
+from collections import Counter
+
+# Load a prebuilt dictionary of valid words (corpus)
+def build_dictionary():
+    # Example: Use a predefined list of English words + country names
+    word_list = """
+    india china usa america food match winner going who was first president
+    the in of and to
+    """
+    word_list += " ".join(["germany", "france", "japan", "canada", "brazil"])
+    words = re.findall(r'\w+', word_list.lower())
+    return Counter(words)
+
+# Serialize and compress the dictionary
+def compress_dictionary(dictionary):
+    compressed = zlib.compress(pickle.dumps(dictionary))
+    return compressed
+
+# Deserialize and decompress the dictionary
+def decompress_dictionary(compressed_dict):
+    return pickle.loads(zlib.decompress(compressed_dict))
+
+# Edit distance calculation (Levenshtein Distance)
+def edit_distance(word1, word2):
+    m, n = len(word1), len(word2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+    for i in range(m + 1):
+        for j in range(n + 1):
+            if i == 0:
+                dp[i][j] = j
+            elif j == 0:
+                dp[i][j] = i
+            elif word1[i - 1] == word2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+    return dp[m][n]
+
+# Suggest corrections for a word
+def suggest_word(word, dictionary):
+    if word in dictionary:
+        return word
+    candidates = [(dict_word, edit_distance(word, dict_word)) for dict_word in dictionary]
+    candidates = sorted(candidates, key=lambda x: (x[1], -dictionary[x[0]]))  # Sort by distance, then frequency
+    return candidates[0][0] if candidates else word
+
+# Correct a query
+def correct_query(query, dictionary):
+    words = query.split()
+    corrected_words = [suggest_word(word, dictionary) for word in words]
+    return " ".join(corrected_words)
+
+# Main program
+def main():
+    # Build and compress dictionary
+    dictionary = build_dictionary()
+    compressed_dict = compress_dictionary(dictionary)
+    
+    # Decompress dictionary for use
+    dictionary = decompress_dictionary(compressed_dict)
+    
+    # Read input
+    n = int(input().strip())
+    queries = [input().strip().lower() for _ in range(n)]
+    
+    # Process each query
+    corrected_queries = [correct_query(query, dictionary) for query in queries]
+    
+    # Output corrected queries
+    for corrected_query in corrected_queries:
+        print(corrected_query)
+
+# Run the program
+if __name__ == "__main__":
+    main()
