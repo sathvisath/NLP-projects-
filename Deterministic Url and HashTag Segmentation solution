@@ -1,0 +1,28 @@
+import re
+
+def load_dictionary(filepath):
+    with open(filepath, 'r') as file:
+        return set(line.strip().lower() for line in file)
+
+def clean_input(input_string):
+    return re.sub(r'^www\.|#|\.(com|org|in|edu|net|gov|io|us)$', '', input_string)
+
+def segment_string(s, dictionary):
+    n, dp = len(s), [None] * (len(s) + 1)
+    dp[0] = []
+    for i in range(1, n + 1):
+        for j in range(i):
+            if s[j:i] in dictionary and dp[j] is not None:
+                dp[i] = dp[j] + [s[j:i]]
+                break
+    return " ".join(dp[n]) if dp[n] else s
+
+def main():
+    dictionary = load_dictionary("words.txt")
+    dictionary.update(str(i) for i in range(1000))  # Add integers
+    dictionary.update(f"{i}.{j}" for i in range(100) for j in range(10))  # Add decimals
+    for _ in range(int(input().strip())):
+        print(segment_string(clean_input(input().strip().lower()), dictionary))
+
+if __name__ == "__main__":
+    main()
